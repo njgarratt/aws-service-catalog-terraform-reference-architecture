@@ -1,5 +1,14 @@
 # Service Catalog Terraform Reference Architecture
 
+## Testing Notes
+
+* `cfn-init` fails on `pip install --upgrade awscli --user` and has been updated to `pip-3 install ...` in `TerraformScripts/cloudformation-templates/terraform-fulfillment-server.yaml`
+* Supplied terraform version appears to be ignored and latest is installed. Manual intervention was required to install the expected version
+* The created `Terraform*` IAM roles need investigation as the permissiins are only sufficient to run the simple demos
+   * `TerraformResourceCreationRole` does not appear to be used for `terraform plan` and `terraform apply` as expected.
+   * `TerraformServerRole` was granted `AdminAccess` in order for plans and applies to work. `STS:AssumeRole` to `arn:aws:iam::*:role/TerraformResourceCreation*` does not appear to be invoked as expected.
+
+
 ## Solution Overview
 
 **AWS Service Catalog and Terraform Terminology**  
@@ -92,6 +101,7 @@ Leave it open, we will use it in a moment
   git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
   
 ```
+
 The **aws-service-catalog-terraform-reference-architecture** folder is created
 
 
@@ -242,6 +252,7 @@ The Status changes to CREATE_COMPLETE once the stack is created.
 ## Create the Terraform Lambda launch function in the regions you plan to use
 
 **Note:** Make sure the TerraformLaunchRole CloudFormation stack has a status of CREATE_COMPLETE before proceeding. 
+
 1.  Sign in to the AWS Console using the spoke account.
 2.   Navigate to the CloudFormation console.
 https://console.aws.amazon.com/cloudformation/
@@ -251,7 +262,7 @@ https://console.aws.amazon.com/cloudformation/
 6.  Type the following URL:https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates/terraform-launch-lambda.yaml
 7.  Choose **Next**
 8.  For **Stack name,** type **TerraformLaunchLambda.** 
-9.  For **Fulfillment Account** ID** type the hub account ID.
+9.  For **Fulfillment Account ID** type the hub account ID.
 10. For **FulfillmentRegion**  enter the region
 11. Update the remaining parameters (optional).
 12. Choose **Next.**
@@ -265,35 +276,41 @@ The Status changes to CREATE_COMPLETE once the stack is created.
 
 This section is intended for users with a basic working knowledge of GitHub. For more information on GitHub, see https://developer.github.com/v3/guides/. 
 To use the Terraform Reference Architecture with GitHub, follow these steps.  
+
 1.  Create a MachineUser with access to the repositories you would like to reference: https://developer.github.com/v3/guides/managing-deploy-keys/#machine-users  
 
-2.  Create a secret in your hub account that contains your MachineUser's private key. For example:  
+1.  Create a secret in your hub account that contains your MachineUser's private key. For example:  
     ```
     aws secretsmanager create-secret --secret-string "`cat id_rsa`" --name TerraformMachineUserIdentity
     ```  
     For more information, see https://docs.aws.amazon.com/secretsmanager/latest/userguide/manage_create-basic-secret.html  
 
-3.  Generate a hashed known_hosts file containing the public keys of your repository's host:  
+1.  Generate a hashed known_hosts file containing the public keys of your repository's host:  
     a.  Retrieve Github's public key using the following commands:  
+
     ```
-    touch known_hosts
-    chmod 600 known_hosts
     ssh-keyscan -t rsa github.com >> known_hosts
     ```
     b.  Verify the public key against Github's public key fingerprints using the following command:  
+
     ```cat known_hosts | ssh-keygen -lf -```  
-    c.  Compare the output to the public key fingerprints Github has posted: https://help.github.com/articles/github-s-ssh-key-fingerprints/  
+
+    c.  Compare the output to the public key fingerprints Github has [posted](https://help.github.com/articles/github-s-ssh-key-fingerprints/)
+
     d.  Generate a hashed known_hosts file using the public key:  
+
     ```ssh-keygen -H -f known_hosts```  
 
-4.  Create a secret in your hub account that contains the hashed known_hosts file. For example:  
-  ```aws secretsmanager create-secret --secret-string "`cat known_hosts`" --name TerraformKnownHosts```  
+1.  Create a secret in your hub account that contains the hashed known_hosts file. For example:  
+  ```
+  aws secretsmanager create-secret --secret-string "`cat known_hosts`" --name TerraformKnownHosts
+  ```  
 
-5.  Update the SshIdentitySecret and SshKnownHostsSecret parameters of your TerraformWrapperServer stack. For example:  
+1.  Update the SshIdentitySecret and SshKnownHostsSecret parameters of your TerraformWrapperServer stack. For example:  
+
     ```
     aws cloudformation update-stack --template-url https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates//terraform-fulfillment-server.yaml --parameters ParameterKey=SshKnownHostsSecret,ParameterValue=TerraformKnownHosts ParameterKey=SshIdentitySecret,ParameterValue=TerraformMachineUserIdentity --capabilities CAPABILITY_NAMED_IAM --stack-name TerraformWrapperServer
     ```
-
 
 ### Important file content information
 The following code is the resource section from the sc-sample-lamp.json CloudFormation wrapper file.

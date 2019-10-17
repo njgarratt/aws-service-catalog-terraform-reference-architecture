@@ -768,7 +768,7 @@ Resources:
               jq : []
           commands:
             01_upgrade_aws_cli:
-              command: 'pip install --upgrade awscli --user'
+              command: 'pip-3 install --upgrade awscli --user'
             02_create_ssh_directory:
               command: 'mkdir -p -m 700 /root/.ssh'
             03_generate_identity_file:
