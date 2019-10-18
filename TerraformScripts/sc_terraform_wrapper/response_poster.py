@@ -55,7 +55,10 @@ class ResponsePoster:
             'RequestId' : self.request['RequestId'],
             'LogicalResourceId' : self.request['LogicalResourceId'],
             'Data': {
-                'ResourceArns': ",".join(arns) if arns else [],
+                #ResourceArns make our response larger than 4096 byes for a decent sized build
+                # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-responses.html
+                # 'ResourceArns': ",".join(arns) if arns else [],
+                'ResourceArns': '',
                 'TerraformScriptOutputLocation': output_url,
                 'TerraformStateFileLocation' : state_file_location,
                 'DryRunId': self.request['ResourceProperties'].get('DryRunId', ''),
