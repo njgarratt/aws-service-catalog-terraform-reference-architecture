@@ -7,6 +7,16 @@
 * The created `Terraform*` IAM roles need investigation as the permissiins are only sufficient to run the simple demos
    * `TerraformResourceCreationRole` does not appear to be used for `terraform plan` and `terraform apply` as expected.
    * `TerraformServerRole` was granted `AdminAccess` in order for plans and applies to work. `STS:AssumeRole` to `arn:aws:iam::*:role/TerraformResourceCreation*` does not appear to be invoked as expected.
+   * Remote state `key` seems to drift out of sync (regenerated for each action) for `destroy` such terminate provisioned product fails. For instance `SC-808288555766-pp-76tym2552k646-MyTerraformStack-TEYYIGX5VBJU` is in backend config but state is actually in `SC-808288555766-pp-76tym2552k646-MyTerraformStack-4a212050-f10b-11e9-9217-06e58f87e324`
+
+   ```
+   terraformarchitecture-singleaccount-te-statestore-1xgtl7ydlpfxs
+                           PRE SC-808288555766-pp-76tym2552k646-MyTerraformStack-4a212050-f10b-11e9-9217-06e58f87e324/
+                           PRE SC-808288555766-pp-76tym2552k646-MyTerraformStack-TEYYIGX5VBJU/
+                           PRE SC-808288555766-pp-7dshujprsqrqe-MyTerraformStack-909d3f00-f0fc-11e9-ad3f-0a0272c6a610/
+                           PRE SC-808288555766-pp-idrrryb5vbryw-MyTerraformStack-a70065c0-f0ec-11e9-b7b1-0abc432e4032/
+                           PRE SC-808288555766-pp-yewjot6jsdxlm-MyTerraformStack-60ff1930-ee86-11e9-8711-0a675d25b48e/
+   ```
 
 
 ## Solution Overview
