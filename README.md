@@ -4,7 +4,7 @@
 
 * `cfn-init` fails on `pip install --upgrade awscli --user` and has been updated to `pip-3 install ...` in `TerraformScripts/cloudformation-templates/terraform-fulfillment-server.yaml`
 * Supplied terraform version appears to be ignored and latest is installed. Manual intervention was required to install the expected version
-* The created `Terraform*` IAM roles need investigation as the permissiins are only sufficient to run the simple demos
+* The created `Terraform*` IAM roles need investigation as the permissions are only sufficient to run the simple demos
    * `TerraformResourceCreationRole` does not appear to be used for `terraform plan` and `terraform apply` as expected.
    * `TerraformServerRole` was granted `AdminAccess` in order for plans and applies to work. `STS:AssumeRole` to `arn:aws:iam::*:role/TerraformResourceCreation*` does not appear to be invoked as expected.
    * Remote state `key` seems to drift out of sync (regenerated for each action) for `destroy` such terminate provisioned product fails. For instance `SC-808288555766-pp-76tym2552k646-MyTerraformStack-TEYYIGX5VBJU` is in backend config but state is actually in `SC-808288555766-pp-76tym2552k646-MyTerraformStack-4a212050-f10b-11e9-9217-06e58f87e324`
